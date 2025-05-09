@@ -15,7 +15,7 @@ class Inky:
         self.grid_x = self.x // TAMANHO_BLOCO
         self.grid_y = self.y // TAMANHO_BLOCO
         self.caminho = []
-        self.velocidade = 2
+        self.velocidade = 1.8
         self.destino_pixel = None
         self.modo = 'perseguir'  # alterna entre 'perseguir' e 'fugir'
         self.tempo_modo = pygame.time.get_ticks()

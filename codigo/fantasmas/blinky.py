@@ -15,7 +15,7 @@ class Blinky:
         self.grid_x = self.x // TAMANHO_BLOCO
         self.grid_y = self.y // TAMANHO_BLOCO
         self.caminho = []
-        self.velocidade = 2 # pixels por frame
+        self.velocidade = 1.8 # pixels por frame
         self.destino_pixel = None
 
     def desenhar(self, tela):

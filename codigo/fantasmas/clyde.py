@@ -14,7 +14,7 @@ class Clyde:
         self.grid_x = self.x // TAMANHO_BLOCO
         self.grid_y = self.y // TAMANHO_BLOCO
         self.caminho = []
-        self.velocidade = 2
+        self.velocidade = 1.8
         self.destino_pixel = None
 
     def desenhar(self, tela):
