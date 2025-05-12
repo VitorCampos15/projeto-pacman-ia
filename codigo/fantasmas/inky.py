@@ -17,7 +17,7 @@ class Inky:
         self.caminho = []
         self.velocidade = 1.8
         self.destino_pixel = None
-        self.modo = 'perseguir'  # alterna entre 'perseguir' e 'fugir'
+        self.modo = 'perseguir'  
         self.tempo_modo = pygame.time.get_ticks()
 
     def desenhar(self, tela):
@@ -30,15 +30,14 @@ class Inky:
 
     def atualizar(self, mapa, pac_pos):
         agora = pygame.time.get_ticks()
-        if agora - self.tempo_modo > 5000:  # alterna a cada 5 segundos
+        if agora - self.tempo_modo > 5000:  
             self.modo = 'fugir' if self.modo == 'perseguir' else 'perseguir'
             self.tempo_modo = agora
 
-        # destino depende do modo
         if self.modo == 'perseguir':
             destino = pac_pos
         else:
-            destino = (1, len(mapa)-2)  # canto inferior esquerdo
+            destino = (1, len(mapa)-2) 
 
         if self.destino_pixel is None or (self.x, self.y) == self.destino_pixel:
             if not self.caminho:

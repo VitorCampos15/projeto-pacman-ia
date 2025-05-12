@@ -26,12 +26,11 @@ class Clyde:
         )
 
     def atualizar(self, mapa, pac_pos):
-        # Decide destino com base na distância ao Pac-Man
         dist = self.heuristica((self.x // TAMANHO_BLOCO, self.y // TAMANHO_BLOCO), pac_pos)
         if dist > 8:
             destino = pac_pos
         else:
-            destino = (len(mapa[0]) - 2, len(mapa) - 2)  # canto inferior direito
+            destino = (len(mapa[0]) - 2, len(mapa) - 2)  
 
         if self.destino_pixel is None or (self.x, self.y) == self.destino_pixel:
             if not self.caminho:

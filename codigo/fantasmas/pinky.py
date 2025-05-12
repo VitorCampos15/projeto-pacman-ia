@@ -85,7 +85,7 @@ class Pinky:
         return []
 
     def heuristica(self, a, b):
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan
+        return abs(a[0] - b[0]) + abs(a[1] - b[1]) 
 
     def vizinhos_validos(self, pos, mapa):
         x, y = pos

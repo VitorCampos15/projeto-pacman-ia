@@ -8,14 +8,16 @@ from fantasmas.inky import Inky
 from fantasmas.clyde import Clyde
 
 
-# Constantes
 TAMANHO_BLOCO = 32
 LARGURA = 28 * TAMANHO_BLOCO
 ALTURA = 31 * TAMANHO_BLOCO
 FPS = 60
-BOLINHAS_PARA_AVANCAR = 35
+BOLINHAS_PARA_AVANCAR = 100
 
-# Cores
+PONTOS_BOLINHA = 10
+PONTOS_FRUTA = 50
+PONTOS_FANTASMA_BASE = 200  
+
 PRETO = (0, 0, 0)
 AZUL = (0, 0, 255)
 AMARELO = (255, 255, 0)
@@ -24,7 +26,6 @@ VERDE = (0, 255, 0)
 ROXO = (128, 0, 128)
 AZUL_CLARO = (100, 100, 255)
 
-# Carregamento do mapa
 def carregar_mapa(caminho):
     mapa = []
     posicao_blinky = None
@@ -61,7 +62,6 @@ def carregar_mapa(caminho):
                     linha_convertida.append(0)
             mapa.append(linha_convertida)
     
-    # Adicionando frutas (power-ups) em posições aleatórias
     frutas_adicionadas = 0
     while frutas_adicionadas < 4:  
         x = random.randint(1, len(mapa[0]) - 2)
@@ -75,7 +75,6 @@ def carregar_mapa(caminho):
     return mapa, posicao_blinky, posicao_pinky, posicao_inky, posicao_clyde, posicoes_frutas
 
 
-# Verifica se o movimento é possível
 def pode_mover(x, y, mapa):
     pontos = [
         (x, y),
@@ -102,18 +101,23 @@ def verificar_bolinha_comida(mapa, mapa_original):
                 return True
     return False
 
-def mostrar_game_over(tela):
+def mostrar_game_over(tela, pontuacao):
     fonte = pygame.font.SysFont("arial", 48, bold=True)
     texto = fonte.render("GAME OVER", True, (255, 0, 0))
-    texto_rect = texto.get_rect(center=(LARGURA // 2, ALTURA // 2))
+    texto_rect = texto.get_rect(center=(LARGURA // 2, ALTURA // 2 - 40))
+    
+    fonte_pontuacao = pygame.font.SysFont("arial", 36, bold=True)
+    texto_pontuacao = fonte_pontuacao.render(f"Pontuação: {pontuacao}", True, BRANCO)
+    texto_pontuacao_rect = texto_pontuacao.get_rect(center=(LARGURA // 2, ALTURA // 2 + 10))
 
     botao_fonte = pygame.font.SysFont("arial", 32, bold=True)
     botao_texto = botao_fonte.render("Tentar Novamente", True, (255, 255, 255))
-    botao_rect = botao_texto.get_rect(center=(LARGURA // 2, ALTURA // 2 + 60))
+    botao_rect = botao_texto.get_rect(center=(LARGURA // 2, ALTURA // 2 + 80))
 
     while True:
         tela.fill((0, 0, 0))
         tela.blit(texto, texto_rect)
+        tela.blit(texto_pontuacao, texto_pontuacao_rect)
         pygame.draw.rect(tela, (0, 0, 255), botao_rect.inflate(20, 10))
         tela.blit(botao_texto, botao_rect)
         pygame.display.flip()
@@ -126,14 +130,18 @@ def mostrar_game_over(tela):
                 if botao_rect.collidepoint(evento.pos):
                     return  
 
-def mostrar_conclusao(tela):
+def mostrar_conclusao(tela, pontuacao):
     fonte = pygame.font.SysFont("arial", 48, bold=True)
     texto = fonte.render("PARABÉNS!", True, VERDE)
-    texto_rect = texto.get_rect(center=(LARGURA // 2, ALTURA // 2 - 60))
+    texto_rect = texto.get_rect(center=(LARGURA // 2, ALTURA // 2 - 80))
     
     subfonteTexto = pygame.font.SysFont("arial", 32, bold=False)
     subtexto = subfonteTexto.render("Você concluiu todos os níveis!", True, BRANCO)
-    subtexto_rect = subtexto.get_rect(center=(LARGURA // 2, ALTURA // 2))
+    subtexto_rect = subtexto.get_rect(center=(LARGURA // 2, ALTURA // 2 - 30))
+    
+    fonte_pontuacao = pygame.font.SysFont("arial", 36, bold=True)
+    texto_pontuacao = fonte_pontuacao.render(f"Pontuação Final: {pontuacao}", True, AMARELO)
+    texto_pontuacao_rect = texto_pontuacao.get_rect(center=(LARGURA // 2, ALTURA // 2 + 20))
 
     botao_fonte = pygame.font.SysFont("arial", 32, bold=True)
     botao_texto = botao_fonte.render("Jogar Novamente", True, (255, 255, 255))
@@ -143,6 +151,7 @@ def mostrar_conclusao(tela):
         tela.fill(PRETO)
         tela.blit(texto, texto_rect)
         tela.blit(subtexto, subtexto_rect)
+        tela.blit(texto_pontuacao, texto_pontuacao_rect)
         pygame.draw.rect(tela, AZUL, botao_rect.inflate(20, 10))
         tela.blit(botao_texto, botao_rect)
         pygame.display.flip()
@@ -163,7 +172,6 @@ def carregar_proximo_nivel(nivel_atual):
     else:
         return os.path.join(os.path.dirname(__file__), "nivel1", "mapa.txt"), 1
         
-# Renderiza uma fruta na posição específica
 def desenhar_fruta(tela, x, y):
     pygame.draw.circle(tela, (255, 0, 0), (x * TAMANHO_BLOCO + 16, y * TAMANHO_BLOCO + 18), 8)
     pygame.draw.line(tela, (0, 100, 0), 
@@ -201,16 +209,17 @@ def atualizar_fantasmas(mapa, pacman_pos, direcao, modo_fuga, tempo_modo_fuga):
     
     return modo_fuga
 
-# Inicialização
 pygame.init()
 tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Pac-Man")
 clock = pygame.time.Clock()
 
 nivel_atual = 1
+pontuacao = 0
+fantasmas_comidos_sequencia = 0
 CAMINHO_MAPA = os.path.join(os.path.dirname(__file__), "nivel1", "mapa.txt")
 MAPA, blinky_pos, pinky_pos, inky_pos, clyde_pos, posicoes_frutas = carregar_mapa(CAMINHO_MAPA)
-MAPA_ORIGINAL = [linha[:] for linha in MAPA]  # Copia o mapa para comparação
+MAPA_ORIGINAL = [linha[:] for linha in MAPA]  
 
 pac_x = 1 * TAMANHO_BLOCO
 pac_y = 1 * TAMANHO_BLOCO
@@ -220,6 +229,8 @@ blinky = Blinky(blinky_pos)
 pinky = Pinky(pinky_pos)
 inky = Inky(inky_pos)
 clyde = Clyde(clyde_pos)
+
+fantasmas_comidos = {'blinky': False, 'pinky': False, 'inky': False, 'clyde': False}
 
 bolinhas_comidas = 0
 modo_fuga = False
@@ -252,37 +263,46 @@ while True:
         if pode_mover(pac_x + velocidade, pac_y, MAPA):
             pac_x += velocidade
             
-    # Comer comida ou power-up
     grid_x = pac_x // TAMANHO_BLOCO
     grid_y = pac_y // TAMANHO_BLOCO
     
-    if MAPA[grid_y][grid_x] == 2:  # Comida normal
+    if MAPA[grid_y][grid_x] == 2:  
         MAPA[grid_y][grid_x] = 0
+        pontuacao += PONTOS_BOLINHA
         bolinhas_comidas += 1
     
-    elif MAPA[grid_y][grid_x] == 3:  # Fruta (power-up)
+    elif MAPA[grid_y][grid_x] == 3:  
         MAPA[grid_y][grid_x] = 0
+        pontuacao += PONTOS_FRUTA
         modo_fuga = True
         tempo_modo_fuga = pygame.time.get_ticks()
+        fantasmas_comidos = {'blinky': False, 'pinky': False, 'inky': False, 'clyde': False}
+        fantasmas_comidos_sequencia = 0
 
-    # Verificação para avançar de nível
     if bolinhas_comidas >= BOLINHAS_PARA_AVANCAR:
-        bolinhas_comidas = 0
-        if nivel_atual == 3:  
-            mostrar_conclusao(tela)
+        nivel_atual += 1
+        if nivel_atual > 3:
+            mostrar_conclusao(tela, pontuacao)
             nivel_atual = 1
-            CAMINHO_MAPA = os.path.join(os.path.dirname(__file__), "nivel1", "mapa.txt")
-        else:
-            CAMINHO_MAPA, nivel_atual = carregar_proximo_nivel(nivel_atual)
+            pontuacao = 0
         
+        CAMINHO_MAPA, nivel_atual = carregar_proximo_nivel(nivel_atual)
         MAPA, blinky_pos, pinky_pos, inky_pos, clyde_pos, posicoes_frutas = carregar_mapa(CAMINHO_MAPA)
-        MAPA_ORIGINAL = [linha[:] for linha in MAPA] 
-        pac_x, pac_y = 1 * TAMANHO_BLOCO, 1 * TAMANHO_BLOCO
+        MAPA_ORIGINAL = [linha[:] for linha in MAPA]
+
+        pac_x = 1 * TAMANHO_BLOCO
+        pac_y = 1 * TAMANHO_BLOCO
+        bolinhas_comidas = 0
+
         blinky = Blinky(blinky_pos)
         pinky = Pinky(pinky_pos)
         inky = Inky(inky_pos)
         clyde = Clyde(clyde_pos)
+
         modo_fuga = False
+        tempo_modo_fuga = 0
+        fantasmas_comidos = {'blinky': False, 'pinky': False, 'inky': False, 'clyde': False}
+        fantasmas_comidos_sequencia = 0
 
     modo_fuga = atualizar_fantasmas(MAPA, (grid_x, grid_y), direcao, modo_fuga, tempo_modo_fuga)
     
@@ -293,10 +313,9 @@ while True:
                 pygame.draw.rect(tela, AZUL, (x * TAMANHO_BLOCO, y * TAMANHO_BLOCO, TAMANHO_BLOCO, TAMANHO_BLOCO))
             elif bloco == 2:
                 pygame.draw.circle(tela, BRANCO, (x * TAMANHO_BLOCO + 16, y * TAMANHO_BLOCO + 16), 4)
-            elif bloco == 3:  # Desenhar frutas (power-ups)
+            elif bloco == 3:  
                 desenhar_fruta(tela, x, y)
 
-    # Desenhar Pac-Man
     pygame.draw.circle(tela, AMARELO, (pac_x + 16, pac_y + 16), 10)
     
     if not modo_fuga:
@@ -305,7 +324,6 @@ while True:
         inky.desenhar(tela)
         clyde.desenhar(tela)
     else:
-        # Desenhar fantasmas azuis (modo de fuga)
         pygame.draw.circle(tela, AZUL_CLARO, 
                           (blinky.x + TAMANHO_BLOCO // 2, blinky.y + TAMANHO_BLOCO // 2), 
                           TAMANHO_BLOCO // 2 - 4)
@@ -322,14 +340,42 @@ while True:
                           (clyde.x + TAMANHO_BLOCO // 2, clyde.y + TAMANHO_BLOCO // 2), 
                           TAMANHO_BLOCO // 2 - 4)
 
-    # Verifica colisão com fantasmas
-    if not modo_fuga:
+    if modo_fuga:
+        if colisao(pac_x, pac_y, blinky.x, blinky.y) and not fantasmas_comidos['blinky']:
+            fantasmas_comidos['blinky'] = True
+            fantasmas_comidos_sequencia += 1
+            pontos_fantasma = PONTOS_FANTASMA_BASE * (2 ** fantasmas_comidos_sequencia)
+            pontuacao += pontos_fantasma
+            blinky.x, blinky.y = blinky_pos
+            
+        if colisao(pac_x, pac_y, pinky.x, pinky.y) and not fantasmas_comidos['pinky']:
+            fantasmas_comidos['pinky'] = True
+            fantasmas_comidos_sequencia += 1
+            pontos_fantasma = PONTOS_FANTASMA_BASE * (2 ** fantasmas_comidos_sequencia)
+            pontuacao += pontos_fantasma
+            pinky.x, pinky.y = pinky_pos
+            
+        if colisao(pac_x, pac_y, inky.x, inky.y) and not fantasmas_comidos['inky']:
+            fantasmas_comidos['inky'] = True
+            fantasmas_comidos_sequencia += 1
+            pontos_fantasma = PONTOS_FANTASMA_BASE * (2 ** fantasmas_comidos_sequencia)
+            pontuacao += pontos_fantasma
+            inky.x, inky.y = inky_pos
+            
+        if colisao(pac_x, pac_y, clyde.x, clyde.y) and not fantasmas_comidos['clyde']:
+            fantasmas_comidos['clyde'] = True
+            fantasmas_comidos_sequencia += 1
+            pontos_fantasma = PONTOS_FANTASMA_BASE * (2 ** fantasmas_comidos_sequencia)
+            pontuacao += pontos_fantasma
+            clyde.x, clyde.y = clyde_pos
+    else:
         if (colisao(pac_x, pac_y, blinky.x, blinky.y) or 
             colisao(pac_x, pac_y, pinky.x, pinky.y) or 
             colisao(pac_x, pac_y, inky.x, inky.y) or 
             colisao(pac_x, pac_y, clyde.x, clyde.y)):
-            mostrar_game_over(tela)
+            mostrar_game_over(tela, pontuacao)
             nivel_atual = 1
+            pontuacao = 0
             CAMINHO_MAPA = os.path.join(os.path.dirname(__file__), "nivel1", "mapa.txt")
             MAPA, blinky_pos, pinky_pos, inky_pos, clyde_pos, posicoes_frutas = carregar_mapa(CAMINHO_MAPA)
             MAPA_ORIGINAL = [linha[:] for linha in MAPA]
@@ -340,18 +386,22 @@ while True:
             clyde = Clyde(clyde_pos)
             bolinhas_comidas = 0
             modo_fuga = False
+            fantasmas_comidos = {'blinky': False, 'pinky': False, 'inky': False, 'clyde': False}
+            fantasmas_comidos_sequencia = 0
 
     fonte_info = pygame.font.SysFont("arial", 20, bold=True)
     texto_nivel = fonte_info.render(f"Nível: {nivel_atual}", True, BRANCO)
     texto_bolinhas = fonte_info.render(f"Bolinhas: {bolinhas_comidas}/{BOLINHAS_PARA_AVANCAR}", True, BRANCO)
+    texto_pontuacao = fonte_info.render(f"Pontuação: {pontuacao}", True, AMARELO)
     
     tela.blit(texto_nivel, (10, 10))
     tela.blit(texto_bolinhas, (10, 40))
+    tela.blit(texto_pontuacao, (10, 70))
     
     if modo_fuga:
         tempo_atual = pygame.time.get_ticks()
         tempo_restante = max(0, 8 - (tempo_atual - tempo_modo_fuga) // 1000)
         texto_poder = fonte_info.render(f"Power-Up: {tempo_restante}s", True, AZUL_CLARO)
-        tela.blit(texto_poder, (10, 70))
+        tela.blit(texto_poder, (10, 100))
 
     pygame.display.flip()

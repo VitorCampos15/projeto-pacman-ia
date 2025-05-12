@@ -37,7 +37,6 @@ class Blinky:
                 prox = self.caminho.pop(0)
                 self.destino_pixel = (prox[0] * TAMANHO_BLOCO, prox[1] * TAMANHO_BLOCO)
 
-        # Movimento fluido em direção ao destino
         if self.destino_pixel:
             dx = self.destino_pixel[0] - self.x
             dy = self.destino_pixel[1] - self.y
@@ -47,7 +46,6 @@ class Blinky:
             elif dy != 0:
                 self.y += self.velocidade * (1 if dy > 0 else -1)
 
-            # Corrigir sobrepasso (ajuste final)
             if abs(dx) < self.velocidade:
                 self.x = self.destino_pixel[0]
             if abs(dy) < self.velocidade:
@@ -79,7 +77,7 @@ class Blinky:
         return []
 
     def heuristica(self, a, b):
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])  
 
     def vizinhos_validos(self, pos, mapa):
         x, y = pos
