@@ -7,12 +7,18 @@ from fantasmas.pinky import Pinky
 from fantasmas.inky import Inky
 from fantasmas.clyde import Clyde
 
+# Instruções de uso:
+# pip install pygame - instala pygame e garante que o código funcione - python pacman.py
+# python pacman.py - executa o código
+# O código deve ser executado na mesma pasta onde estão os arquivos de mapa
+# Na pasta dos fantasmas, deve haver os arquivos blinky.py, pinky.py, inky.py e clyde.py
+
 
 TAMANHO_BLOCO = 32
-LARGURA = 28 * TAMANHO_BLOCO
-ALTURA = 31 * TAMANHO_BLOCO
+LARGURA = 15 * TAMANHO_BLOCO
+ALTURA = 15 * TAMANHO_BLOCO
 FPS = 60
-BOLINHAS_PARA_AVANCAR = 100
+BOLINHAS_PARA_AVANCAR = 20
 
 PONTOS_BOLINHA = 10
 PONTOS_FRUTA = 50
